@@ -10,6 +10,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const closeSecondModal = document.getElementById("closeSecondModal");
   const openSecondModalBtn = document.getElementById("openSecondModalBtn");
   const arrowLeft = document.querySelector(".fa-arrow-left");
+  const token = window.localStorage.getItem("authToken");
+  console.log("Token récupéré :", token);
 
   // Ouverture de la première modal
   admin.addEventListener("click", () => {
@@ -28,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (e.target.classList.contains("containerModal")) {
       containerModal.style.display = "none";
     }
-  });
+  });  
 
   // Affichage des images dans la galerie
   async function displayProjetModal() {
@@ -62,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${window.sessionStorage.getItem(
+            Authorization: `Bearer ${window.localStorage.getItem(
               "authToken"
             )}`,
           },
@@ -132,18 +134,36 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Gérer la soumission du formulaire de la deuxième modal
-  document.getElementById("photoForm").onsubmit = function (event) {
-    event.preventDefault();
-    var fileInput = document.getElementById("photoInput");
-    var file = fileInput.files[0];
-    if (file) {
-      alert("Photo ajoutée : " + file.name);
-      secondModal.style.display = "none";
-      resetImagePreview();
-    } else {
-      alert("Veuillez choisir une photo.");
+document.getElementById("photoForm").onsubmit = async function (event) {
+  event.preventDefault();
+  const fileInput = document.getElementById("photoInput");
+  const file = fileInput.files[0];
+  if (file) {
+    const formData = new FormData();
+    formData.append("title", title.value);
+    formData.append("category", category.value);
+    formData.append("photo", file);
+
+    // Afficher les données du formulaire avant l'envoi
+    console.log("Données du formulaire avant envoi :", formData);
+
+    try {
+      const response = await fetch("http://localhost:5678/api/works", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      console.log("Réponse du serveur :", response);
+    } catch (error) {
+      console.error("Erreur:", error);
     }
-  };
+  } else {
+    alert("Veuillez choisir une photo.");
+  }
+};
+
 
   // Gérer la prévisualisation de l'image
   document
@@ -170,6 +190,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Liste de catégories dans l'input select
   async function displayCategories() {
     const select = document.querySelector(".modalAddphoto select");
+    select.innerHTML = "";
     const categories = await getCategorys();
     categories.forEach((category) => {
       const option = document.createElement("option");
@@ -181,29 +202,43 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Ajouter une photo
 
-  const form = document.querySelector(".modalAddphoto form");
+  const formModal = document.querySelector(".modalAddphoto form");
   const title = document.querySelector(".modalAddphoto #title");
   const category = document.querySelector(".modalAddphoto #category");
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTY1MTg3NDkzOSwiZXhwIjoxNjUxOTYxMzM5fQ.JGN1p8YIfR-M-5eQ-Ypy6Ima5cKA4VbfL2xMr2MgHm4"; 
-
-  form.addEventListener("submit", async (e) => {
+  
+  
+  formModal.addEventListener("submit", async (e) => {
     e.preventDefault();
-
+  
+    const fileInput = document.getElementById("photoInput");
+    const file = fileInput.files[0];
+    const titleValue = title.value.trim();
+    const categoryValue = category.value.trim();
+  
+    // Vérifier si les champs obligatoires sont remplis
+    if (!titleValue || !categoryValue) {
+      console.error("Veuillez remplir tous les champs obligatoires.");
+      return;
+    }
+  
     const formData = new FormData();
-    formData.append("title", title.value);
-    formData.append("category", category.value);
-    formData.append("photo", document.querySelector("#photoInput").files[0]);
-
+    formData.append("title", titleValue);
+    formData.append("category", categoryValue);
+    
+    // Ajouter le fichier uniquement s'il est sélectionné
+    if (file) {
+      formData.append("photo", file);
+    }
+  
     try {
       const response = await fetch("http://localhost:5678/api/works", {
         method: "POST",
-        body: formData,
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        body: formData,
       });
-
+  
       if (response.ok) {
         const data = await response.json();
         console.log(data);
@@ -211,11 +246,13 @@ document.addEventListener("DOMContentLoaded", function () {
         displayProjetModal();
         displayWorks();
       } else {
-        console.error("Erreur lors de l'ajout de la photo");
+        console.error("Erreur lors de l'ajout de la photo:", response.status);
       }
     } catch (error) {
       console.error("Erreur:", error);
     }
   });
+  
+  
 });
 

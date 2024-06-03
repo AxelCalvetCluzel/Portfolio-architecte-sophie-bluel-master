@@ -1,16 +1,19 @@
-
 document.addEventListener("DOMContentLoaded", function () {
   // Variables
-  const form = document.querySelector("form");
+  // vérifier la pertinence du code afin de pouvoir enlever les erreurs
+  const formLogin = document.querySelector(".connexionLogin");
   const messageError = document.querySelector("section#login p");
   const buttonModifier = document.querySelector(".buttonModifier");
-  const loginButton = document.querySelector("button");
+  const loginButton = document.querySelector("#loginBtn");
   const email = document.querySelector("#emailLogin");
   const password = document.querySelector("#passwordLogin");
   const editModeBar = document.getElementById("edit-mode-bar");
 
+  // Récupération du token depuis le localStorage
+  const token = window.localStorage.getItem("authToken");
+
   // Vérifiez l'état de connexion de l'utilisateur
-  const suprModifier = window.sessionStorage.getItem("loged") === "true";
+  const suprModifier = window.localStorage.getItem("loged") === "true";
   if (!suprModifier && buttonModifier) {
     buttonModifier.style.display = "none";
   } else {
@@ -20,7 +23,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Récupération des données de connexion
-  
   async function loginUser(event) {
     event.preventDefault();
     console.log(email);
@@ -40,35 +42,36 @@ document.addEventListener("DOMContentLoaded", function () {
     // Gestion des résultats
     if (response.ok) {
       const responseData = await response.json();
-      const token = responseData.token;
-      window.sessionStorage.setItem("authToken", token);
-      window.sessionStorage.setItem("loged", true);
+      const token = responseData.token; // Nouvelle variable locale
+      window.localStorage.setItem("authToken", token);
+      window.localStorage.setItem("loged", true);
       window.location.href = "index.html";
     } else {
       if (messageError) {
-        messageError.textContent = "Votre mot de passe ou votre email est incorrect.";
+        messageError.textContent =
+          "Votre mot de passe ou votre email est incorrect.";
       } else {
-        console.error("Élément pour le message d'erreur n'existe pas dans le DOM");
+        console.error(
+          "Élément pour le message d'erreur n'existe pas dans le DOM"
+        );
       }
     }
   }
 
   // Gestion du bouton de connexion
-  if (loginButton && form) {
+  if (loginButton && formLogin) {
     loginButton.addEventListener("click", function (event) {
       event.preventDefault();
-      form.dispatchEvent(new Event("submit"));
+      formLogin.dispatchEvent(new Event("submit"));
     });
 
-    form.addEventListener("submit", loginUser);
-  } else {
-    console.error("Formulaire ou bouton de connexion introuvable dans le DOM");
+    formLogin.addEventListener("submit", loginUser);
   }
 
   // Utilisateur connecté
-  const loged = window.sessionStorage.getItem("loged");
+  const loged = window.localStorage.getItem("loged");
   const logout = document.querySelector("header nav ul .logout");
-  
+
   if (loged === "true") {
     const filters = document.getElementById("filters");
     if (filters) {
@@ -77,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (logout) {
       logout.textContent = "logout";
       logout.addEventListener("click", () => {
-        window.sessionStorage.setItem("loged", false);
+        window.localStorage.setItem("loged", false);
         window.location.reload();
       });
     } else {
@@ -93,5 +96,3 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 });
-
-
