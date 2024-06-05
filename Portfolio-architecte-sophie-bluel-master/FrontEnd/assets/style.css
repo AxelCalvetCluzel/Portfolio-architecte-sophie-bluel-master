@@ -632,4 +632,8 @@ footer nav ul {
   z-index: 1000;
 }
 
+#errorMessage{
+  color: red;
+  display: none;
+}
 

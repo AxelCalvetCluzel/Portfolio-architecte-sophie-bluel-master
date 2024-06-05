@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const openSecondModalBtn = document.getElementById("openSecondModalBtn");
   const arrowLeft = document.querySelector(".fa-arrow-left");
   const token = window.localStorage.getItem("authToken");
-  console.log("Token récupéré :", token);
+  
 
   // Ouverture de la première modal
   admin.addEventListener("click", () => {
@@ -56,6 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Suppression d'une image dans la modal
   function deleteImage() {
+  //Sélection de toutes les icônes de poubelle
     const trashAll = document.querySelectorAll(".fa-trash-can");
     trashAll.forEach((trash) => {
       trash.addEventListener("click", (e) => {
@@ -67,15 +68,13 @@ document.addEventListener("DOMContentLoaded", function () {
             Authorization: `Bearer ${window.localStorage.getItem("authToken")}`,
           },
         };
+  //Envoi de la requête de suppression
         fetch("http://localhost:5678/api/works/" + id, init)
           .then((response) => {
             if (!response.ok) {
-              console.log("Le delete n'a pas marché");
+              
             } else {
-              console.log(
-                "Le delete a réussi, projet supprimé avec l'ID :",
-                id
-              );
+             
               displayProjetModal();
               displayWorks();
             }
@@ -90,30 +89,61 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Fonction pour réinitialiser la prévisualisation de l'image
+  // Fonction pour réinitialiser la prévisualisation de l'image et le champ de titre
   function resetImagePreview() {
     const preview = document.getElementById("previewImage");
     const icon = document.querySelector(".containerFile .fa-image");
     const label = document.querySelector(".containerFile label");
     const paragraph = document.querySelector(".containerFile p");
-
+    const titleInput = document.getElementById("title");
+    const fileInput = document.getElementById("photoInput"); 
+  //Réinitialise la prévisualisation de l'image
     preview.src = "";
     preview.style.display = "none";
     icon.classList.remove("hidden");
     label.style.display = "flex";
     paragraph.classList.remove("hidden");
+
+    // Réinitialiser le champ de titre
+    titleInput.value = "";
+
+    // Réinitialiser le champ de fichier
+    fileInput.value = "";
+  }
+
+  // Fonction pour afficher les messages d'erreur
+  function displayErrorMessage(message) {
+    const errorMessage = document.getElementById("errorMessage");
+    errorMessage.textContent = message;
+    errorMessage.style.display = "block";
+  }
+
+  // Fonction pour masquer les messages d'erreur
+  function hideErrorMessage() {
+    const errorMessage = document.getElementById("errorMessage");
+    errorMessage.textContent = "";
+    errorMessage.style.display = "none";
   }
 
   // Ouverture de la deuxième modal
   openSecondModalBtn.addEventListener("click", () => {
     containerModal.style.display = "none";
     secondModal.style.display = "flex";
+    resetAndUpdateSecondModal();
   });
+
+  // Fonction pour réinitialiser et mettre à jour la deuxième modal
+  function resetAndUpdateSecondModal() {
+    resetImagePreview();
+    hideErrorMessage();
+    displayCategories();
+  }
 
   // Fermeture de la deuxième modal avec la croix
   closeSecondModal.addEventListener("click", () => {
     secondModal.style.display = "none";
     resetImagePreview();
+    hideErrorMessage();
   });
 
   // Fermeture de la deuxième modal en cliquant en dehors de la modal
@@ -121,6 +151,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (e.target.classList.contains("containerModal")) {
       secondModal.style.display = "none";
       resetImagePreview();
+      hideErrorMessage();
     }
   });
 
@@ -129,29 +160,29 @@ document.addEventListener("DOMContentLoaded", function () {
     containerModal.style.display = "flex";
     secondModal.style.display = "none";
     resetImagePreview();
+    hideErrorMessage();
   });
 
   // Gérer la prévisualisation de l'image
-  document
-    .getElementById("photoInput")
-    .addEventListener("change", function (event) {
-      const preview = document.getElementById("previewImage");
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      const icon = document.querySelector(".containerFile .fa-image");
-      const label = document.querySelector(".containerFile label");
-      const paragraph = document.querySelector(".containerFile p");
-      if (file) {
-        reader.onload = function () {
-          preview.src = reader.result;
-          preview.style.display = "flex";
-          icon.classList.add("hidden");
-          label.style.display = "none";
-          paragraph.classList.add("hidden");
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+  document.getElementById("photoInput").addEventListener("change", function (event) {
+    const preview = document.getElementById("previewImage");
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    const icon = document.querySelector(".containerFile .fa-image");
+    const label = document.querySelector(".containerFile label");
+    const paragraph = document.querySelector(".containerFile p");
+
+    if (file) {
+      reader.onload = function () {
+        preview.src = reader.result;
+        preview.style.display = "flex";
+        icon.classList.add("hidden");
+        label.style.display = "none";
+        paragraph.classList.add("hidden");
+      };
+      reader.readAsDataURL(file);
+    }
+  });
 
   // Liste de catégories dans l'input select
   async function displayCategories() {
@@ -165,15 +196,28 @@ document.addEventListener("DOMContentLoaded", function () {
       select.appendChild(option);
     });
   }
+
   // Gérer l'ajout de photo
   const addPhotoForm = document.getElementById("photoForm");
 
   addPhotoForm.addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    const formData = new FormData();
     const fileInput = document.getElementById("photoInput");
     const titleInput = document.getElementById("title");
+
+    // Vérifier si l'image et le titre sont présents
+    if (!fileInput.files[0]) {
+      displayErrorMessage("Veuillez ajouter une photo.");
+      return;
+    }
+
+    if (titleInput.value.trim() === "") {
+      displayErrorMessage("Veuillez entrer un titre.");
+      return;
+    }
+
+    const formData = new FormData();
     const categorySelect = document.getElementById("category");
 
     formData.append("image", fileInput.files[0]);
@@ -190,18 +234,14 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       if (!response.ok) {
-        console.log("L'ajout de la photo a échoué");
       } else {
-        console.log("La photo a été ajoutée avec succès");
         document.getElementById("secondModal").style.display = "none";
         resetImagePreview();
+        hideErrorMessage();
         displayProjetModal();
       }
     } catch (error) {
-      console.error(
-        "Une erreur est survenue lors de l'ajout de la photo :",
-        error
-      );
+      console.error("Une erreur est survenue lors de l'ajout de la photo :", error);
     }
   });
 });
