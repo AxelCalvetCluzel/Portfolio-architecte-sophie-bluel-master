@@ -1,21 +1,17 @@
 document.addEventListener("DOMContentLoaded", function () {
   // Variables
-  // vérifier la pertinence du code afin de pouvoir enlever les erreurs
   const formLogin = document.querySelector(".connexionLogin");
-  const messageError = document.querySelector("section#login p");
-  const buttonModifier = document.querySelector(".buttonModifier");
+  const errorMessage = document.querySelector("section#login p");
+  const editButton = document.querySelector(".editButton");
   const loginButton = document.querySelector("#loginBtn");
   const email = document.querySelector("#emailLogin");
   const password = document.querySelector("#passwordLogin");
   const editModeBar = document.getElementById("edit-mode-bar");
 
-  // Récupération du token depuis le localStorage
-  const token = window.localStorage.getItem("authToken");
-
   // Vérifiez l'état de connexion de l'utilisateur
-  const suprModifier = window.localStorage.getItem("loged") === "true";
-  if (!suprModifier && buttonModifier) {
-    buttonModifier.style.display = "none";
+  const isEditMode = window.localStorage.getItem("loged") === "true";
+  if (!isEditMode && editButton) {
+    editButton.style.display = "none";
   } else {
     if (editModeBar) {
       editModeBar.classList.remove("hidden");
@@ -42,13 +38,13 @@ document.addEventListener("DOMContentLoaded", function () {
     // Gestion des résultats
     if (response.ok) {
       const responseData = await response.json();
-      const token = responseData.token; // Nouvelle variable locale
+      const token = responseData.token; 
       window.localStorage.setItem("authToken", token);
       window.localStorage.setItem("loged", true);
       window.location.href = "index.html";
     } else {
-      if (messageError) {
-        messageError.textContent =
+      if (errorMessage) {
+        errorMessage.textContent =
           "Votre mot de passe ou votre email est incorrect.";
       } else {
         console.error(

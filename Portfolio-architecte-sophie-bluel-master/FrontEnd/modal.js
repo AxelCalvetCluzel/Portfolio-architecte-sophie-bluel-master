@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const closeSecondModal = document.getElementById("closeSecondModal");
   const openSecondModalBtn = document.getElementById("openSecondModalBtn");
   const arrowLeft = document.querySelector(".fa-arrow-left");
-  const token = window.localStorage.getItem("authToken");
+  
   
 
   // Ouverture de la première modal
@@ -72,9 +72,8 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("http://localhost:5678/api/works/" + id, init)
           .then((response) => {
             if (!response.ok) {
-              
+
             } else {
-             
               displayProjetModal();
               displayWorks();
             }

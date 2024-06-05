@@ -12,7 +12,6 @@ async function displayWorks() {
   arrayWorks.forEach((element) => {
     createImage(element);
   });
-
   return arrayWorks; // Retourne le tableau des travaux dans la modal
 }
 
@@ -55,21 +54,20 @@ async function displayCategoriesButtons() {
   displayclicButtons();
 }
 
-// Fonction pour afficher les travaux filtrés par le clic sur les boutons de catégorie
+//afficher les travaux filtrés par le clic sur les boutons de catégorie
 async function displayclicButtons() {
   const projet = await getWorks();
   const gallery = document.querySelector(".gallery");
   const buttons = document.querySelectorAll("#filters button");
-  
   buttons.forEach((button) => {
     button.addEventListener("click", (e) => {
       const btnId = e.target.id;
       gallery.innerHTML = "";
       if (btnId !== "0") {
-        const tridesProjets = projet.filter((element) => {
+        const filteredWorks = projet.filter((element) => {
           return element.categoryId == btnId;
         });
-        tridesProjets.forEach((element) => {
+        filteredWorks.forEach((element) => {
           createImage(element);
         });
       } else {

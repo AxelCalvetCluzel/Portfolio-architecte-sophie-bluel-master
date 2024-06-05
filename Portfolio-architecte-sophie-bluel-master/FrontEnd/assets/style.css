@@ -175,6 +175,7 @@ nav li {
 }
 nav a {
   text-decoration: none;
+  color: #000;
 }
 
 li:hover {
@@ -396,7 +397,7 @@ footer nav ul {
 
 
 /* /////////////Modal///////////// */
-.buttonModifier{
+.editButton{
   display: flex;
   gap: 10px;
 }
